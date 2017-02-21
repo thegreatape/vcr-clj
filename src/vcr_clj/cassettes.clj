@@ -31,5 +31,6 @@
 ;; TODO: use clojure.edn?
 (defn read-cassette
   [name]
-  (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
-    (edn/read {:readers data-readers} r)))
+  (let [cassette (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
+                   (edn/read {:readers data-readers} r))]
+    (update cassette :calls #(mapv (fn [ep] (update ep :return (fn [x] (vary-meta x assoc :type :vcr-clj.clj-http/serializable-http-request)))) %))))
