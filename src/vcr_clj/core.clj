@@ -100,9 +100,10 @@
         the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn recordable?]
+              (for [{:keys [var arg-key-fn recordable? return-transformer]
                      :or {arg-key-fn vector
-                          recordable? (constantly true)}}
+                          recordable? (constantly true)
+                          return-transformer identity}}
                     specs
                     :let [orig (deref var)
                           the-var-name (var-name var)
@@ -111,7 +112,7 @@
                                       (if (apply recordable? args)
                                         (if (and (record-new-episodes? specs the-var-name)
                                                  (not (has-recording? the-var-name k)))
-                                          (let [result (apply orig args)]
+                                          (let [result (return-transformer (apply orig args))]
                                             (record! {:var-name the-var-name
                                                       :arg-key k
                                                       :return result})
@@ -163,7 +164,7 @@
      :record-new-episodes?
                   a boolean incidating if an existing cassette should be
                   updated with calls that were not previously recorded.
-                  defaults to false
+                  defaults to false.
     }"
   [cname specs & body]
   `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))
